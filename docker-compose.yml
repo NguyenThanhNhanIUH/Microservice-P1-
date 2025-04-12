@@ -1,0 +1,112 @@
+version: '3'
+
+services:
+  # API Gateway
+  api-gateway:
+    build: ./sales-system/api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - product-service
+      - order-service
+      - customer-service
+    networks:
+      - sales-network
+
+  # Product Service
+  product-service:
+    build: ./sales-system/product-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-product:5432/product_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - postgres-product
+    networks:
+      - sales-network
+
+  # Order Service
+  order-service:
+    build: ./sales-system/order-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - postgres-order
+    networks:
+      - sales-network
+
+  # Customer Service
+  customer-service:
+    build: ./sales-system/customer-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-customer:5432/customer_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - postgres-customer
+    networks:
+      - sales-network
+
+  # PostgreSQL for Product Service
+  postgres-product:
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=product_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+    networks:
+      - sales-network
+
+  # PostgreSQL for Order Service
+  postgres-order:
+    image: postgres:15
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_DB=order_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+    networks:
+      - sales-network
+
+  # PostgreSQL for Customer Service
+  postgres-customer:
+    image: postgres:15
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_DB=customer_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres-customer-data:/var/lib/postgresql/data
+    networks:
+      - sales-network
+
+networks:
+  sales-network:
+    driver: bridge
+
+volumes:
+  postgres-product-data:
+  postgres-order-data:
+  postgres-customer-data: 
